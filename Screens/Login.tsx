@@ -35,7 +35,7 @@ export default function Login({navigation} : any){
             const user = results.rows.item(0); //to get the first (and only) user found
             Alert.alert("Success", `Welcome back, ${user.username}!`);
             // Here you would navigate to the Home screen:
-            navigation.replace('Main');
+            navigation.replace('Main', {userId: user.id});
           } else {
             //No user found
             Alert.alert("Error", "Invalid email or password");

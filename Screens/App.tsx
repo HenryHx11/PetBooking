@@ -16,7 +16,9 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 // --- Bottom Tab Navigation Bar ---
-function MainTabs({ navigation } : any){
+function MainTabs({ route, navigation } : any){
+  //Grab userId passed from Login.tsx
+  const { userId } = route.params;
   return(
     //Use flex 1 to hold the Tabs and the Floating Action Button (FAB)
     <View style={{flex: 1}}>
@@ -49,7 +51,7 @@ function MainTabs({ navigation } : any){
 
       <TouchableOpacity
         style={styles.fab}
-        onPress={() => navigation.navigate('Profile')}
+        onPress={() => navigation.navigate('Profile', {userId: userId})}
       >
         <Ionicons name="person" size={30} color="#fff"/>
       </TouchableOpacity>

@@ -5,7 +5,8 @@ db.execute('''CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     username TEXT NOT NULL,
     email TEXT NOT NULL,
-    password TEXT NOT NULL
+    password TEXT NOT NULL,
+    profile_pic TEXT
 )''') #users table, email might be login method or username
 
 #bookId use a random function to generate id with preset format

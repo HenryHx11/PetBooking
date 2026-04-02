@@ -19,7 +19,7 @@ export default function Profile({ route, navigation }: any){
     const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
-        console.log("Current userId passed to Profile:", userId); // <-- CHECK THIS IN CONSOLE
+        console.log("Current userId passed to Profile:", userId);
   
   if (!userId) {
     console.warn("No userId provided! Defaulting to empty fields.");

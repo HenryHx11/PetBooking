@@ -41,7 +41,7 @@ function MainTabs({ route, navigation } : any){
         })}
       >
         <Tab.Screen name="Home" component={Home}/>
-        <Tab.Screen name="Bookings" component={Bookings}/>
+        <Tab.Screen name="Bookings" component={Bookings} initialParams={{userId: userId}}/>
         <Tab.Screen name="About" component={About}/>
       </Tab.Navigator>
 

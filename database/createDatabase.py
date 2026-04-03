@@ -36,21 +36,22 @@ db.execute('''CREATE TABLE IF NOT EXISTS appointments (
 
 cursor = db.cursor()
 
+#dummy data for testing.
 cursor.execute('''Insert into users (username, email, password) values 
-               ("John Example", "johne@gmail.com", "123345")
-               ("Jane Example", "janee@gmail.com", "123456")
+               ("John Example", "johne@gmail.com", "123345"),
+               ("Jane Example", "janee@gmail.com", "123456"),
                ("John UTAR", "johnu@gmail.com", "111111")''')
 
 cursor.execute('''INSERT INTO hotelBookings (userId, bookDateStart, bookDateEnd) VALUES 
-               (1, 2026-10-10, 2026-10-15)
-               (1, 2026-11-01, 2026-11-05)''')
+               (1, "2026-10-10", "2026-10-15"),
+               (1, "2026-11-01", "2026-11-05")''')
 
 cursor.execute('''INSERT INTO groomBookings (userId, petType, bookDate) VALUES
-               (1, "Small Dog", "2026-09-20")
+               (1, "Small Dog", "2026-09-20"),
                (2, "Large Dog", "2026-10-01")''')
 
 cursor.execute('''INSERT INTO appointments (userId, bookDate) VALUES
-               (1, "2026-09-25")
+               (1, "2026-09-25"),
                (2, "2026-10-05")''')
 
 db.commit()

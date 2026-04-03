@@ -12,8 +12,8 @@ export default function About(){
     const clinicLocation ={
         latitude: 2.9935,
         longitude: 101.7874,
-        latitudeDelta: 0.01, //Controls zoom level
-        longitudeDelta: 0.01,
+        latitudeDelta: 0.1, //Controls zoom level
+        longitudeDelta: 0.1,
     };
 
   return(
@@ -45,10 +45,10 @@ export default function About(){
 
         {/*Map Section*/}
         <Text style={styles.mapHeader}>Find Us Here</Text>
-        <View style={[{flex:1},styles.mapContainer]}>
+        <View style={styles.mapContainer}>
             <MapView
                 provider={PROVIDER_GOOGLE} //Use Google Maps
-                style={[styles.map, { flex: 1}]}
+                style={styles.map}
                 initialRegion={clinicLocation}
                 onMapReady={() => console.log("Map ready")}
   onRegionChangeComplete={(r) => console.log(r)}
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     },
     mapContainer: {
         marginHorizontal: 20,
-        height: 300,
+        height: 250,
         borderRadius: 12,
         overflow: 'hidden',
         borderWidth: 1,

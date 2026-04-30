@@ -15,60 +15,61 @@ import SQLite, {Transaction} from 'react-native-sqlite-storage';
 SQLite.enablePromise(true);
 SQLite.DEBUG(true);
 
-export default function Login({navigation}: any) {
-  //State for input fields
+export default function Register({navigation}: any) {
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  //Handle the Login Function
-  const handleLogin = async () => {
-    //Check if user typed in anything in both fields
-    if (!email || !password) {
+  const handleRegister = async () => {
+    if (!username || !email || !password) {
       Alert.alert('Error', 'Please fill in all fields');
       return;
     }
 
     try {
-      //Open the database
       const db = await SQLite.openDatabase({
         name: 'db.sqlite',
         location: 'default',
         createFromLocation: '~db.sqlite',
       });
-      console.log('DB opened: ', db);
-
       await db.transaction((tx: Transaction) => {
         tx.executeSql(
-          'SELECT * FROM users WHERE email = ? AND password = ?',
-          [email.trim(), password], //values for the sql query
+          'INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
+          [username.trim(), email.trim(), password],
           (tx, results) => {
-            if (results.rows.length > 0) {
-              const user = results.rows.item(0); //to get the first (and only) user found
-              Alert.alert('Success', `Welcome back, ${user.username}!`);
-              // Here you would navigate to the Home screen:
-              navigation.replace('Main', {userId: user.id});
+            if (results.rowsAffected > 0) {
+              Alert.alert('Success', 'Registration successful! Please log in.');
+              navigation.replace('Login');
             } else {
-              //No user found
-              Alert.alert('Error', 'Invalid email or password');
+              Alert.alert('Error', 'Registration failed');
             }
           },
-          //If any error is found or table doesn't exist, this will run
           error => {
-            console.log('Login Error: ', error);
+            console.log('Registration Error: ', error);
             Alert.alert('Error', 'Database error occurred');
           },
         );
       });
     } catch (error) {
-      console.error('Database failed to open: ', error);
-      Alert.alert('Error', 'Failed to open database');
+      console.log('Database Error: ', error);
+      Alert.alert('Error', 'Could not open database');
     }
   };
-
   return (
     <View style={styles.container}>
       <Image source={logo} style={styles.logo} />
-      <Text style={styles.title}>Login</Text>
+      <Text style={styles.title}>Register</Text>
+      <View style={styles.inputContainer}>
+        <Iconicons name="mail-outline" size={25} style={styles.icon} />
+        <TextInput
+          style={styles.input}
+          placeholder="Name"
+          keyboardType="default"
+          autoCapitalize="words"
+          value={username}
+          onChangeText={text => setUsername(text)} // Update Username
+        />
+      </View>
       <View style={styles.inputContainer}>
         <Iconicons name="mail-outline" size={25} style={styles.icon} />
         <TextInput
@@ -94,19 +95,18 @@ export default function Login({navigation}: any) {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={handleLogin} //call the login function
+        onPress={handleRegister} //call the register function
       >
-        <Text style={styles.buttonText}>Login</Text>
+        <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.replace('Register')}>
+      <TouchableOpacity onPress={() => navigation.replace('Login')}>
         <Text style={styles.signUp}>
-          Don't have an account? <Text style={styles.signUpLink}>Register</Text>
+          Already have an account? <Text style={styles.signUpLink}>Login</Text>
         </Text>
       </TouchableOpacity>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,

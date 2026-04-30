@@ -40,7 +40,7 @@ function MainTabs({ route, navigation } : any){
         headerShown: false, //Hides the double header
         })}
       >
-        <Tab.Screen name="Home" component={Home}/>
+        <Tab.Screen name="Home" component={Home} initialParams={{userId: userId}}/>
         <Tab.Screen name="Bookings" component={Bookings} initialParams={{userId: userId}}/>
         <Tab.Screen name="About" component={About}/>
       </Tab.Navigator>

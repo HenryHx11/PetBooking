@@ -149,7 +149,6 @@ export default function App() {
         <Stack.Screen name="Register" component={Register} />
         {/*Tab Navigator*/}
         <Stack.Screen name="Main" component={MainTabs} />
-        <Stack.Screen name="Profile" component={Profile} />
       </Stack.Navigator>
     </NavigationContainer>
   );

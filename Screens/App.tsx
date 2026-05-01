@@ -12,6 +12,7 @@ import Home from './Home';
 import Bookings from './Bookings';
 import About from './About';
 import Profile from './Profile';
+import CreateBookingScreen from './CreateBooking';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -30,7 +31,7 @@ function CustomTabBar({state, navigation, userId}: any) {
       {/* Home */}
       <TouchableOpacity
         style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}
-        onPress={() => navigation.navigate('Home')}>
+        onPress={() => navigation.navigate('Home', {userId})}>
         <Ionicons
           name={state.index === 0 ? 'home' : 'home-outline'}
           size={24}
@@ -60,7 +61,7 @@ function CustomTabBar({state, navigation, userId}: any) {
       {/* Middle Add Button */}
       <View style={{flex: 1, alignItems: 'center'}}>
         <TouchableOpacity
-          onPress={() => navigation.navigate('Bookings', {userId: userId})}
+          onPress={() => navigation.navigate('CreateBooking', {userId: userId})}
           style={{
             width: 60,
             height: 60,
@@ -123,7 +124,7 @@ function MainTabs({route, navigation}: any) {
       tabBar={props => (
         <CustomTabBar {...props} navigation={navigation} userId={userId} />
       )}>
-      <Tab.Screen name="Home" component={Home} />
+      <Tab.Screen name="Home" component={Home} initialParams={{userId: userId}}/>
       <Tab.Screen
         name="Bookings"
         component={Bookings}
@@ -149,6 +150,11 @@ export default function App() {
         <Stack.Screen name="Register" component={Register} />
         {/*Tab Navigator*/}
         <Stack.Screen name="Main" component={MainTabs} />
+        <Stack.Screen
+          name="CreateBooking"
+          component={CreateBookingScreen}
+          options={{ presentation: 'modal', headerShown: false }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

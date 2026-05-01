@@ -1,319 +1,353 @@
-import React, {useState} from "react";
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
-import logo from '../images/petBookingLogo.jpg';
-import Iconicons  from 'react-native-vector-icons/Ionicons';
-import SQLite, { Transaction } from 'react-native-sqlite-storage';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Linking, ActivityIndicator } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import Ionicons from 'react-native-vector-icons/Ionicons';
+import SQLite from 'react-native-sqlite-storage';
 
 SQLite.enablePromise(true);
 
+//Define shapes for the state
+interface NextAppt{
+    type: string;
+    date: string;
+    detail: string;
+}
+
+interface Stats{
+    vet: number;
+    groom: number;
+    hotel: number;
+}
+
 export default function Home({ route }: any){
-    //UserId passed from App.tsx (MainTabs function)
     const userId = route.params?.userId;
 
-    //UI State depending on which form is selected
-    const [activeForm, setActiveForm] = useState<'hotel' | 'groom' | 'vet' 
-    | null>(null);
+    const [userName, setUserName] = useState('');
+    const [nextAppt, setNextAppt] = useState<NextAppt | null>(null);
+    const [stats, setStats] = useState<Stats>({ vet: 0, groom: 0, hotel: 0 });
+    const [isLoading, setIsLoading] = useState(true);
 
-    //Form states
-    const [petType, setPetType] = useState("");
+    //useFocusEffect runs everytime the screen is focused (when user navigates back), to fetch latest data
+    useFocusEffect(
+        useCallback(() => {
+            const fetchDashboardData = async () => {
+                setIsLoading(true);
+                try {
+                    const db = await SQLite.openDatabase({ name: 'db.sqlite', location: 'default', createFromLocation: '~db.sqlite' });
 
-    //Date states (different types for different forms)
-    const [singleDate, setSingleDate] = useState(new Date()); //For groom bookings and appointments
-    const [hotelStartDate, setHotelStartDate] = useState(new Date()); //For hotel 
-    const [hotelEndDate, setHotelEndDate] = useState(new Date()); //For hotel
+                    //Get username from db using userId
+                    const name = (await db.executeSql('SELECT username FROM users WHERE id=?', [userId]))[0].rows.item(0).username;
+                    setUserName(name);
 
-    //Controls the date picker popup visibility
-    const [showPicker, setShowPicker] = useState(false);
-    const [pickerMode, setPickerMode] = useState<'date' | 'time'>('date');
-    const [activeDateField, setActiveDateField] = useState<'single' | 'start' | 'end' | null>(null);
+                    //Get todays date and compare with the booking dates in db
+                    const today = new Date().toISOString().split('T')[0];
+                    
+                    //get appointment data from db logic
+                    const [nextRes] = await db.executeSql(`
+                        SELECT 'Hotel' as type, bookDateStart as date, 'Check-in' as detail FROM hotelBookings WHERE userId = ? AND bookDateStart >= ?
+                        UNION ALL
+                        SELECT 'Grooming' as type, bookDate as date, petType as detail FROM groomBookings WHERE userId = ? AND bookDate >= ?
+                        UNION ALL
+                        SELECT 'Vet' as type, bookDate as date, 'Vet Visit' as detail FROM appointments WHERE userId = ? AND bookDate >= ?
+                        ORDER BY date ASC LIMIT 1
+                        `, [userId, today, userId, today, userId, today]);
 
-    //Helper function to format date JS date to YYYY-MM-DD
-    const formatDate = (date: Date) => {
-        return date.toISOString().split('T')[0];
-    };
-
-
-    //Date picker
-    const openPicker = (field: 'single' | 'start' | 'end', mode: 'date' | 'time') => {
-        setActiveDateField(field);
-        setPickerMode(mode);
-        setShowPicker(true);
-    };
-
-    const onDateChange = (event: any, selectedDate?: Date) => {
-        //Hide the picker immediately after date selection
-        if (Platform.OS === 'android'){
-            setShowPicker(false);
-        }
-
-        if (selectedDate){
-            if(activeDateField === 'single'){
-                setSingleDate(selectedDate);
-            }
-            if(activeDateField === 'start'){
-                setHotelStartDate(selectedDate);
-            }
-            if(activeDateField === 'end'){
-                setHotelEndDate(selectedDate);
-            }
-        }
-    };
-
-    //Handle form submissions
-    const handleBooking = async () => {
-        try{
-            const db = await SQLite.openDatabase({name: 'db.sqlite', location: 'default', createFromLocation: '~db.sqlite'});
-
-            if(activeForm === 'hotel'){
-                if(!hotelStartDate || !hotelEndDate){
-                    return Alert.alert("Error", "Please fill in all fields.");
-                }
-                else if(hotelStartDate >= hotelEndDate){
-                    return Alert.alert("Error", "Check-out date must be after check-in date.");
-                }
-                await db.executeSql(
-                    'INSERT INTO hotelBookings (userId, bookDateStart, bookDateEnd) VALUES (?, ?, ?)', 
-                    [userId, formatDate(hotelStartDate), formatDate(hotelEndDate)]
-                );
-            }
-
-            else if(activeForm === 'groom'){
-                if(!petType || !singleDate){
-                    return Alert.alert("Error", "Please fill in all fields.");
-                }
-                await db.executeSql(
-                    'INSERT INTO groomBookings (userId, petType, bookDate) VALUES (?, ?, ?)',
-                    [userId, petType, formatDate(singleDate)]
-                );
-            }
-
-            else if(activeForm === 'vet'){
-                if(!singleDate){
-                    return Alert.alert("Error", "Please fill in all fields.");
-                }
-                await db.executeSql(
-                    'INSERT INTO appointments (userId, bookDate) VALUES (?, ?)',
-                    [userId, formatDate(singleDate)]
-                );
-            }
-
-            //Success message and to reset form and active state
-            Alert.alert("Success!", "Your booking has been made.");
-            setPetType("");
-            setActiveForm(null);
-        }
-        catch(error){
-            console.error("Booking error: ", error); //for troubleshoot purpose
-            Alert.alert("Error", "An error occurred while making the booking.");
-        }
-    }
- 
-  return(
-    <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={{padding: 20, paddingBottom: 100}}>
-            <View style={styles.header}>
-                <Text style={styles.greeting}>Welcome Back!</Text>
-                <Text style={styles.subtitle}>What does your pet need today?</Text>
-            </View>
-
-            {/**Service cards */}
-            <View style={styles.cardContainer}>
-                <TouchableOpacity style={[styles.card, activeForm === 'hotel' && styles.activeCard]}
-                onPress={() => setActiveForm('hotel')}>
-                    <Iconicons name="business" size={40} color={activeForm === 'hotel' ? '#fff' : '#FF9800'}/>
-                    <Text style={[styles.cardText, activeForm === 'hotel' && styles.activeText]}>Pet Hotel</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity style={[styles.card, activeForm === 'groom' && styles.activeCard]}
-                onPress={() => setActiveForm('groom')}>
-                    <Iconicons name="cut" size={40} color={activeForm === 'groom' ? '#fff' : '#e91e63'}/>
-                    <Text style={[styles.cardText, activeForm === 'groom' && styles.activeText]}>Grooming</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={[styles.card, activeForm === 'vet' && styles.activeCard]}
-                onPress={() => setActiveForm('vet')}>
-                    <Iconicons name="medkit" size={40} color={activeForm === 'vet' ? '#fff' : '#4caf50'}/>
-                    <Text style={[styles.cardText, activeForm === 'vet' && styles.activeText]}>Appointments</Text>
-                </TouchableOpacity>
-            </View>
-
-            {/**Dynamic forms based on user booking selection*/}
-            {activeForm && (
-                <View style={styles.formContainer}>
-                    <Text style={styles.formTitle}>
-                        {activeForm === 'hotel' ? 'Book a Stay' : activeForm === 'groom' ? 'Schedule Grooming Session' : 'Appointment Booking'}
-                    </Text>
-
-                    {/*Hotel form */}
-                    {activeForm === 'hotel' && (
-                        <>
-                        <Text style={styles.label}>Check-In Date</Text>
-                        <TouchableOpacity style={styles.dateInput} onPress={() => openPicker('start', 'date')}>
-                            <Iconicons name="calendar-outline" size={20} color="#656" style={{ marginRight: 10}}/>
-                            <Text style={styles.dateText}>{formatDate(hotelStartDate)}</Text>
-                        </TouchableOpacity>
-
-                        <Text style={styles.label}>Check-out</Text>
-                        <TouchableOpacity style={styles.dateInput} onPress={() => openPicker('end', 'date')}>
-                            <Iconicons name="calendar-outline" size={20} color="#666" style={{ marginRight: 10 }}/>
-                            <Text style={styles.dateText}>{formatDate(hotelEndDate)}</Text>
-                        </TouchableOpacity>
-                        </>
-                    )}
-
-                    {/**Grooming Form */}
-                    {activeForm === 'groom' && (
-                        <>
-                        <Text style={styles.label}>Pet Size/Type</Text>
-                        <TextInput style={styles.input} placeholder="e.g., Small Dog, Cat" value={petType} onChangeText={setPetType}/>
-                        
-                        <Text style={styles.label}>Appointment Date</Text>
-                        <TouchableOpacity style={styles.dateInput} onPress={() => openPicker('single', 'date')}>
-                            <Iconicons name="calendar-outline" size={20} color="#656" style={{marginRight: 10}}/>
-                            <Text style={styles.dateText}>{formatDate(singleDate)}</Text>
-                        </TouchableOpacity>
-                        </>
-                    )}
-
-                    {/*Vet Form */}
-                    {activeForm === 'vet' && (
-                        <>
-                        <Text style={styles.label}>Appointment Date</Text>
-                        <TouchableOpacity style={styles.dateInput} onPress={() => openPicker('single', 'date')}>
-                            <Iconicons name="calendar-outline" size={20} color="#656" style={{marginRight: 10}}/>
-                            <Text style={styles.dateText}>{formatDate(singleDate)}</Text>
-                         </TouchableOpacity>
-                        </>
-                    )}
-
-                    <TouchableOpacity style={styles.submitButton} onPress={handleBooking}>
-                        <Text style={styles.submitText}>Confirm Booking</Text>
-                    </TouchableOpacity>
-                </View>
-            )}
-
-            {/*Date picker component */}
-            {showPicker && (
-                <DateTimePicker
-                    value={
-                        activeDateField === 'single' ? singleDate :
-                        activeDateField === 'start' ? hotelStartDate : hotelEndDate
+                    if(nextRes.rows.length > 0){
+                        setNextAppt(nextRes.rows.item(0)); //set next appointment data to state
+                    } else {
+                        setNextAppt(null) //if no upcoming appointments, set to null
                     }
-                    mode={pickerMode}
-                    display="default"
-                    onChange={onDateChange}
-                    minimumDate={new Date()} //Prevents booking in the past
-                />
-            )}
+
+                    //fetch stats for statistics summary section
+                    const [vetRes] = await db.executeSql('SELECT COUNT(*) as count FROM appointments WHERE userId=?', [userId]);
+                    const [groomRes] = await db.executeSql('SELECT COUNT(*) as count FROM groomBookings WHERE userId=?', [userId]);
+                    const [hotelRes] = await db.executeSql('SELECT COUNT(*) as count FROM hotelBookings WHERE userId=?', [userId]);
+
+                    setStats({
+                        vet: vetRes.rows.item(0).count,
+                        groom: groomRes.rows.item(0).count,
+                        hotel: hotelRes.rows.item(0).count
+                    });
+                } catch(error){
+                    console.error("Dashboard Fetch Error:", error);
+                } finally {
+                    setIsLoading(false); //stop loading indicator after data is fetched
+                }
+            };
+
+            fetchDashboardData();
+        }, [userId])
+    );
+
+    //to handle emergency contact button press
+    const handleEmergencyCall = () => {
+        //opens native phone dialer with phone number
+        Linking.openURL('tel:+60123456789');
+    };
+
+    if(isLoading){
+        return <ActivityIndicator size="large" color="#1e90ff" style={styles.loader}/>;
+    }
+
+    return(
+        <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
+
+            {/**Header */}
+            <View style={styles.header}>
+                <Text style={styles.greeting}>Hello {userName}!</Text>
+                <Text style={styles.subtitle}>Here is your pet care overview.</Text>
+            </View>
+
+            {/**Up next card */}
+            <View style={styles.upNextCard}>
+                <View style={styles.upNextHeader}>
+                    <Ionicons name="calendar" size={20} color="#fff"/>
+                    <Text style={styles.upNextTitle}>Up Next</Text>
+                </View>
+
+                {nextAppt ? (
+                    <View style={styles.upNextBody}>
+                        <View style={styles.upNextIconCircle}>
+                            <Ionicons 
+                                name={nextAppt.type === 'Hotel' ? 'business' : nextAppt.type === 'Grooming' ? 'cut' : 'medkit'}
+                                size={30}
+                                color="#1e90ff"
+                            />
+                        </View>
+
+                        <View style={styles.upNextInfo}>
+                            <Text style={styles.upNextType}>{nextAppt.type} Appointment</Text>
+                            <Text style={styles.upNextDate}>{nextAppt.date}</Text>
+                            <Text style={styles.upNextDetail}>{nextAppt.detail}</Text>
+                        </View>
+                    </View>
+                ) : (
+                    <View style={styles.upNextEmpty}>
+                        <Text style={styles.emptyText}>You have no upcoming appointments.</Text>
+                        <Text style={styles.emptySubText}>Tap the + button to book one!</Text>
+                    </View>
+                )}
+            </View>
+
+            {/**Stats summary and activity grid */}
+            <Text style={styles.sectionTitle}>Your Activity</Text>
+            <View style={styles.statsGrid}>
+                <View style={styles.statBox}>
+                    <Text style={styles.statNumber}>{stats.vet}</Text>
+                    <Text style={styles.statLabel}>Vet Visits</Text>
+                </View>
+                <View style={styles.statBox}>
+                    <Text style={styles.statNumber}>{stats.groom}</Text>
+                    <Text style={styles.statLabel}>Groomings</Text>
+                </View>
+                <View style={styles.statBox}>
+                    <Text style={styles.statNumber}>{stats.hotel}</Text>
+                    <Text style={styles.statLabel}>Hotel Stays</Text>
+                </View>
+            </View>
+
+            {/**Care tips card*/}
+            <View style={styles.tipCard}>
+                <Ionicons name="bulb" size={24} color='#ffc107' style={{ marginRight:10 }}/>
+                <View style={{ flex: 1 }}>
+                    <Text style={styles.tipTitle}>Tip of the Day</Text>
+                    <Text style={styles.tipText}>Make sure your pets always have access to fresh water, especially after grooming sessions!</Text>
+                </View>
+            </View>
+
+            {/**Emergency contact button */}
+            <TouchableOpacity style={styles.emergencyBtn} onPress={handleEmergencyCall}>
+                <Ionicons name="call" size={24} color="#fff" style={{ marginRight: 10 }} />
+                <Text style={styles.emergencyText}>Emergency Clinic Call</Text>
+            </TouchableOpacity>
+
         </ScrollView>
-    </KeyboardAvoidingView>
-  );
+    )
+
 }
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#f4f4f4',
+        padding: 20
     },
+    loader: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center'
+    },
+
     header: {
-        marginTop: 20,
-        marginBottom: 30
+        marginBottom: 25,
+        marginTop: 10
     },
     greeting: {
-        fontSize: 28,
+        fontSize: 32,
         fontWeight: 'bold',
         color: '#333'
     },
     subtitle: {
         fontSize: 16,
-        color: '#656',
+        color: '#666',
         marginTop: 5
     },
-    cardContainer: {
+
+    // Up Next Card
+    upNextCard: {
+        backgroundColor: '#1E90FF',
+        borderRadius: 16,
+        overflow: 'hidden',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOpacity: 0.2,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 3 },
+        marginBottom: 30
+    },
+    upNextHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.15)',
+        paddingHorizontal: 15,
+        paddingVertical: 10
+    },
+    upNextTitle: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginLeft: 8,
+        textTransform: 'uppercase',
+        letterSpacing: 1
+    },
+    upNextBody: {
+        flexDirection: 'row',
+        padding: 20,
+        alignItems: 'center'
+    },
+    upNextIconCircle: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        backgroundColor: '#fff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 15
+    },
+    upNextInfo: {
+        flex: 1
+    },
+    upNextType: {
+        color: '#fff',
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 4
+    },
+    upNextDate: {
+        color: '#e0f0ff',
+        fontSize: 16,
+        marginBottom: 2
+    },
+    upNextDetail: {
+        color: '#b3d9ff',
+        fontSize: 14,
+        fontStyle: 'italic'
+    },
+    upNextEmpty: {
+        padding: 30,
+        alignItems: 'center'
+    },
+    emptyText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+        textAlign: 'center'
+    },
+    emptySubText: {
+        color: '#e0f0ff',
+        fontSize: 14,
+        textAlign: 'center',
+        marginTop: 5
+    },
+
+    // Stats Grid
+    sectionTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#333',
+        marginBottom: 15
+    },
+    statsGrid: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         marginBottom: 30
     },
-    card: {
+    statBox: {
         flex: 1,
         backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 15,
+        padding: 15,
+        borderRadius: 12,
         alignItems: 'center',
-        marginHorizontal: 5,
-        elevation: 3,
+        marginHorizontal: 4,
+        elevation: 2,
         shadowColor: '#000',
-        shadowOpacity: 0.1,
+        shadowOpacity: 0.05,
+        shadowRadius: 3,
+        shadowOffset: { width: 0, height: 1 }
+    },
+    statNumber: {
+        fontSize: 28,
+        fontWeight: 'bold',
+        color: '#1E90FF',
+        marginBottom: 5
+    },
+    statLabel: {
+        fontSize: 13,
+        color: '#656',
+        fontWeight: '600'
+    },
+
+    // Tip Card
+    tipCard: {
+        flexDirection: 'row',
+        backgroundColor: '#FFFDE7',
+        padding: 20,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: '#FFF59D',
+        marginBottom: 30,
+        alignItems: 'center'
+    },
+    tipTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: '#F57F17',
+        marginBottom: 4
+    },
+    tipText: {
+        fontSize: 14,
+        color: '#555',
+        lineHeight: 20
+    },
+
+    // Emergency Button
+    emergencyBtn: {
+        flexDirection: 'row',
+        backgroundColor: '#E53935',
+        padding: 18,
+        borderRadius: 12,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 3,
+        shadowColor: '#E53935',
+        shadowOpacity: 0.4,
         shadowRadius: 5,
         shadowOffset: { width: 0, height: 2 }
     },
-    activeCard: {
-        backgroundColor: '#1e90ff'
-    },
-    cardText: {
-        marginTop: 10,
-        fontWeight: 'bold',
-        color: '#333',
-        fontSize: 10.5
-    },
-    activeText: {
-        color: '#fff'
-    },
-    formContainer: {
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 15,
-        elevation: 2
-    },
-    formTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: 20,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-        paddingBottom: 10
-    },
-    label: {
-        fontSize: 14,
-        color: '#555',
-        marginBottom: 5,
-        fontWeight: '600'
-    },
-    input: {
-        backgroundColor: '#f9f9f9',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        padding: 12,
-        marginBottom: 15,
-        fontSize: 16
-    },
-    submitButton: {
-        backgroundColor: '#4caf50',
-        padding: 15,
-        borderRadius: 8,
-        alignItems: 'center',
-        marginTop: 10
-    },
-    submitText: {
+    emergencyText: {
         color: '#fff',
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: 'bold',
-    },
-    dateInput: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#f9f9f9',
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 8,
-        padding: 12,
-        marginBottom: 15
-    },
-    dateText: {
-        fontSize: 16,
-        color: '#333'
+        letterSpacing: 0.5
     }
 });

@@ -90,7 +90,7 @@ return(
                 <Text style={styles.emptyText}>No hotel bookings.</Text>
             ) : (
                 hotelBookings.map((b) => (
-                    <View key={'hotel-${b.hId}'} style={styles.card}>
+                    <View key={`hotel-${b.hId}`} style={styles.card}>
                         <Text style={styles.cardText}><Text style={styles.bold}>Check-In: </Text> {b.bookDateStart}</Text>
                         <Text style={styles.cardText}><Text style={styles.bold}>Check-Out: </Text> {b.bookDateEnd}</Text>
                     </View>
@@ -109,7 +109,7 @@ return(
                 <Text style={styles.emptyText}>No upcoming grooming sessions.</Text>
             ) : (
                 groomBookings.map((g) => (
-                    <View key={'groom-${b.gId}'} style={styles.card}>
+                    <View key={`groom-${g.gId}`} style={styles.card}>
                         <Text style={styles.cardText}><Text style={styles.bold}>Pet: </Text> {g.petType}</Text>
                         <Text style={styles.cardText}><Text style={styles.bold}>Date: </Text> {g.bookDate}</Text>
                     </View>
@@ -128,7 +128,7 @@ return(
                 <Text style={styles.emptyText}>No upcoming appointments.</Text>
             ) : (
                 appointments.map((a) => (
-                    <View key={'appointment-${a.id}'} style={styles.card}>
+                    <View key={`appointment-${a.aId}`} style={styles.card}>
                         <Text style={styles.cardText}><Text style={styles.bold}>Date: </Text> {a.bookDate}</Text>
                     </View>
                 ))

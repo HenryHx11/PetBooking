@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   },
   headerCard: {
     marginHorizontal: 15,
-    marginBottom: 25,
+    marginBottom: 15,
     borderRadius: 20,
     overflow: 'hidden',
     elevation: 8,
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
   },
   headerBackground: {
     backgroundColor: '#1E90FF',
-    paddingVertical: 40,
+    paddingVertical: 25,
     paddingHorizontal: 20,
     alignItems: 'center',
   },
@@ -245,9 +245,9 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   avatar: {
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
     backgroundColor: '#fff',
     borderWidth: 4,
     borderColor: '#fff',

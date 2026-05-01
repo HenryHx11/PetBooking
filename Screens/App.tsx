@@ -13,6 +13,9 @@ import Bookings from './Bookings';
 import About from './About';
 import Profile from './Profile';
 import CreateBookingScreen from './CreateBooking';
+import HotelBookings from './HotelBookings';
+import GroomingBookings from './GroomingBookings';
+import AppointmentBookings from './AppointmentBookings';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -124,7 +127,11 @@ function MainTabs({route, navigation}: any) {
       tabBar={props => (
         <CustomTabBar {...props} navigation={navigation} userId={userId} />
       )}>
-      <Tab.Screen name="Home" component={Home} initialParams={{userId: userId}}/>
+      <Tab.Screen
+        name="Home"
+        component={Home}
+        initialParams={{userId: userId}}
+      />
       <Tab.Screen
         name="Bookings"
         component={Bookings}
@@ -153,7 +160,22 @@ export default function App() {
         <Stack.Screen
           name="CreateBooking"
           component={CreateBookingScreen}
-          options={{ presentation: 'modal', headerShown: false }}
+          options={{presentation: 'modal', headerShown: false}}
+        />
+        <Stack.Screen
+          name="HotelBookings"
+          component={HotelBookings}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="GroomingBookings"
+          component={GroomingBookings}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="AppointmentBookings"
+          component={AppointmentBookings}
+          options={{headerShown: false}}
         />
       </Stack.Navigator>
     </NavigationContainer>

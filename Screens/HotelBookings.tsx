@@ -14,6 +14,7 @@ import {
 import Iconicons from 'react-native-vector-icons/Ionicons';
 import SQLite from 'react-native-sqlite-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import HotelBookingForm from '../components/HotelBookingForm';
 
 SQLite.enablePromise(true);
 
@@ -84,6 +85,11 @@ export default function HotelBookings({route, navigation}: any) {
         setEditEndDate(selectedDate);
       }
     }
+  };
+
+  const openEditPicker = (field: 'start' | 'end', _mode: 'date' | 'time') => {
+    setDatePickerMode(field);
+    setShowDatePicker(true);
   };
 
   const openEditModal = (booking: HotelBooking) => {
@@ -179,38 +185,12 @@ export default function HotelBookings({route, navigation}: any) {
 
         <ScrollView contentContainerStyle={{padding: 20}}>
           <View style={styles.formContainer}>
-            <Text style={styles.label}>Check-In Date</Text>
-            <TouchableOpacity
-              style={styles.dateInput}
-              onPress={() => {
-                setDatePickerMode('start');
-                setShowDatePicker(true);
-              }}>
-              <Iconicons
-                name="calendar-outline"
-                size={20}
-                color="#666"
-                style={{marginRight: 10}}
-              />
-              <Text style={styles.dateText}>{formatDate(editStartDate)}</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.label}>Check-Out Date</Text>
-            <TouchableOpacity
-              style={styles.dateInput}
-              onPress={() => {
-                setDatePickerMode('end');
-                setShowDatePicker(true);
-              }}>
-              <Iconicons
-                name="calendar-outline"
-                size={20}
-                color="#666"
-                style={{marginRight: 10}}
-              />
-              <Text style={styles.dateText}>{formatDate(editEndDate)}</Text>
-            </TouchableOpacity>
-
+            <HotelBookingForm
+              hotelStartDate={editStartDate}
+              hotelEndDate={editEndDate}
+              openPicker={openEditPicker}
+              formatDate={formatDate}
+            />
             <TouchableOpacity
               style={styles.submitButton}
               onPress={handleSaveBooking}>

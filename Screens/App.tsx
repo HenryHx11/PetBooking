@@ -1,9 +1,7 @@
 import React from 'react';
-import {View, TouchableOpacity, Text, StyleSheet} from 'react-native';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 
 //To import the screens
 import Register from './Register';
@@ -16,104 +14,10 @@ import CreateBookingScreen from './CreateBooking';
 import HotelBookings from './HotelBookings';
 import GroomingBookings from './GroomingBookings';
 import AppointmentBookings from './AppointmentBookings';
+import CustomTabBar from '../components/CustomTabBar';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
-
-// Custom Tab Bar with middle button
-function CustomTabBar({state, navigation, userId}: any) {
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        backgroundColor: '#fff',
-        height: 60,
-        borderTopWidth: 1,
-        borderTopColor: '#eee',
-      }}>
-      {/* Home */}
-      <TouchableOpacity
-        style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}
-        onPress={() => navigation.navigate('Home', {userId})}>
-        <Ionicons
-          name={state.index === 0 ? 'home' : 'home-outline'}
-          size={24}
-          color={state.index === 0 ? '#1E90FF' : 'gray'}
-        />
-        <Text
-          style={{color: state.index === 0 ? '#1E90FF' : 'gray', fontSize: 12}}>
-          Home
-        </Text>
-      </TouchableOpacity>
-
-      {/* Bookings */}
-      <TouchableOpacity
-        style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}
-        onPress={() => navigation.navigate('Bookings', {userId})}>
-        <Ionicons
-          name={state.index === 1 ? 'calendar' : 'calendar-outline'}
-          size={24}
-          color={state.index === 1 ? '#1E90FF' : 'gray'}
-        />
-        <Text
-          style={{color: state.index === 1 ? '#1E90FF' : 'gray', fontSize: 12}}>
-          Bookings
-        </Text>
-      </TouchableOpacity>
-
-      {/* Middle Add Button */}
-      <View style={{flex: 1, alignItems: 'center'}}>
-        <TouchableOpacity
-          onPress={() => navigation.navigate('CreateBooking', {userId: userId})}
-          style={{
-            width: 60,
-            height: 60,
-            borderRadius: 30,
-            backgroundColor: '#1E90FF',
-            justifyContent: 'center',
-            alignItems: 'center',
-            marginTop: -20,
-          }}>
-          <Ionicons name="add" size={30} color="#fff" />
-        </TouchableOpacity>
-      </View>
-
-      {/* About */}
-      <TouchableOpacity
-        style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}
-        onPress={() => navigation.navigate('About')}>
-        <Ionicons
-          name={
-            state.index === 2
-              ? 'information-circle'
-              : 'information-circle-outline'
-          }
-          size={24}
-          color={state.index === 2 ? '#1E90FF' : 'gray'}
-        />
-        <Text
-          style={{color: state.index === 2 ? '#1E90FF' : 'gray', fontSize: 12}}>
-          About
-        </Text>
-      </TouchableOpacity>
-
-      {/* Profile */}
-      <TouchableOpacity
-        style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}
-        onPress={() => navigation.navigate('Profile', {userId})}>
-        <Ionicons
-          name={state.index === 3 ? 'person' : 'person-outline'}
-          size={24}
-          color={state.index === 3 ? '#1E90FF' : 'gray'}
-        />
-        <Text
-          style={{color: state.index === 3 ? '#1E90FF' : 'gray', fontSize: 12}}>
-          Profile
-        </Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
 
 // --- Bottom Tab Navigation Bar ---
 function MainTabs({route, navigation}: any) {
@@ -181,23 +85,3 @@ export default function App() {
     </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  fab: {
-    position: 'absolute',
-    width: 60,
-    height: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
-    left: '50%',
-    marginLeft: -30, // Half of width to center
-    bottom: 80, // Adjusted to sit above the bottom tab bar
-    backgroundColor: '#1E90FF',
-    borderRadius: 30,
-    elevation: 8, // Shadow for Android
-    shadowColor: '#000', // Shadow for iOS
-    shadowOpacity: 0.3,
-    shadowOffset: {width: 0, height: 2},
-    shadowRadius: 2,
-  },
-});

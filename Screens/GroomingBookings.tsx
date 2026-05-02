@@ -15,6 +15,7 @@ import {
 import Iconicons from 'react-native-vector-icons/Ionicons';
 import SQLite from 'react-native-sqlite-storage';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import GroomBookingForm from '../components/GroomBookingForm';
 
 SQLite.enablePromise(true);
 
@@ -78,6 +79,10 @@ export default function GroomingBookings({route, navigation}: any) {
     if (selectedDate) {
       setEditDate(selectedDate);
     }
+  };
+
+  const openEditPicker = (_field: 'single', _mode: 'date' | 'time') => {
+    setShowDatePicker(true);
   };
 
   const openEditModal = (booking: GroomBooking) => {
@@ -165,27 +170,13 @@ export default function GroomingBookings({route, navigation}: any) {
 
         <ScrollView contentContainerStyle={{padding: 20}}>
           <View style={styles.formContainer}>
-            <Text style={styles.label}>Pet Size/Type</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g., Small Dog, Cat"
-              value={editPetType}
-              onChangeText={setEditPetType}
+            <GroomBookingForm
+              petType={editPetType}
+              setPetType={setEditPetType}
+              singleDate={editDate}
+              openPicker={openEditPicker}
+              formatDate={formatDate}
             />
-
-            <Text style={styles.label}>Appointment Date</Text>
-            <TouchableOpacity
-              style={styles.dateInput}
-              onPress={() => setShowDatePicker(true)}>
-              <Iconicons
-                name="calendar-outline"
-                size={20}
-                color="#656"
-                style={{marginRight: 10}}
-              />
-              <Text style={styles.dateText}>{formatDate(editDate)}</Text>
-            </TouchableOpacity>
-
             <TouchableOpacity
               style={styles.submitButton}
               onPress={handleSaveBooking}>

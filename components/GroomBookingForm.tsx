@@ -10,13 +10,13 @@ interface Props {
   formatDate: (date: Date) => string;
 }
 
-const GroomBookingForm: React.FC<Props> = ({
+export default function GroomBookingForm({
   petType,
   setPetType,
   singleDate,
   openPicker,
   formatDate,
-}) => {
+}: Props) {
   return (
     <>
       <Text style={styles.label}>Pet Size/Type</Text>
@@ -77,5 +77,3 @@ const styles = StyleSheet.create({
     color: '#333',
   },
 });
-
-export default GroomBookingForm;

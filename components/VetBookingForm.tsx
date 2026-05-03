@@ -8,11 +8,11 @@ interface Props {
   formatDate: (date: Date) => string;
 }
 
-const VetBookingForm: React.FC<Props> = ({
+export default function VetBookingForm({
   singleDate,
   openPicker,
   formatDate,
-}) => {
+}: Props) {
   return (
     <>
       <Text style={styles.label}>Appointment Date</Text>
@@ -29,7 +29,7 @@ const VetBookingForm: React.FC<Props> = ({
       </TouchableOpacity>
     </>
   );
-};
+}
 
 const styles = StyleSheet.create({
   label: {
@@ -56,5 +56,3 @@ const styles = StyleSheet.create({
     color: '#333',
   },
 });
-
-export default VetBookingForm;

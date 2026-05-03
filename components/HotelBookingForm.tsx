@@ -9,12 +9,12 @@ interface Props {
   formatDate: (date: Date) => string;
 }
 
-const HotelBookingForm: React.FC<Props> = ({
+export default function HotelBookingForm({
   hotelStartDate,
   hotelEndDate,
   openPicker,
   formatDate,
-}) => {
+}: Props) {
   return (
     <>
       <Text style={styles.label}>Check-In Date</Text>
@@ -71,5 +71,3 @@ const styles = StyleSheet.create({
     color: '#333',
   },
 });
-
-export default HotelBookingForm;
